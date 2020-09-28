@@ -23,9 +23,10 @@ module "eks-cluster" {
   tags            = module.labels.tags
   worker_groups = [
     {
-      instance_type = var.instance_type
-      asg_max_size  = 2
-      asg_max_size  = 2
+      instance_type        = var.instance_type
+      asg_desired_capacity = 2
+      asg_max_size         = 5
+      asg_min_size         = 2
     }
   ]
 }
