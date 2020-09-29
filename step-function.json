@@ -1,13 +1,18 @@
 {
-  "Comment": "A Hello World example demonstrating various state types of the Amazon States Language",
-  "StartAt": "Pass",
+  "Comment": "A open source module to taint/drain eks worker nodes gracefully",
+  "StartAt": "Add an additional worker node",
   "States": {
-    "Pass": {
-      "Comment": "A Pass state passes its input to its output, without performing work. Pass states are useful when constructing and debugging state machines.",
+     "Add an additional worker node": {
+      "Comment": "adding an additional worker node to eks cluster",
       "Type": "Pass",
-      "Next": "Hello World example?"
+      "Next": "Put and node to standby"
     },
-    "Hello World example?": {
+     "Put and node to standby": {
+      "Comment": "Putting and worker node to standby",
+      "Type": "Pass",
+      "Next": "is node on standby and all other nodes on inservice?"
+    },
+    "is node on standby and all other nodes on inservice?": {
       "Comment": "A Choice state adds branching logic to a state machine. Choice rules can implement 16 different comparison operators, and can be combined using And, Or, and Not",
       "Type": "Choice",
       "Choices": [
@@ -26,44 +31,60 @@
     },
     "Yes": {
       "Type": "Pass",
-      "Next": "Wait 3 sec"
+      "Next": "Wait 360 sec"
     },
     "No": {
-      "Type": "Fail",
-      "Cause": "Not Hello World"
+      "Type": "Pass",
+      "Next": "Wait 3 sec"
     },
     "Wait 3 sec": {
       "Comment": "A Wait state delays the state machine from continuing for a specified time.",
       "Type": "Wait",
       "Seconds": 3,
-      "Next": "Parallel State"
+      "Next": "is node on standby and all other nodes on inservice?"
     },
-    "Parallel State": {
-      "Comment": "A Parallel state can be used to create parallel branches of execution in your state machine.",
-      "Type": "Parallel",
-      "Next": "Hello World",
-      "Branches": [
+    "Wait 360 sec": {
+      "Comment": "A Wait state delays the state machine from continuing for a specified time.",
+      "Type": "Wait",
+      "Seconds": 3,
+      "Next": "taint the node"
+    },
+    "taint the node": {
+      "Type": "Pass",
+      "Next": "Wait 1200 sec"
+    },
+    "Wait 1200 sec": {
+      "Comment": "A Wait state delays the state machine from continuing for a specified time.",
+      "Type": "Wait",
+      "Seconds": 3,
+      "Next": "All active pods gone?"
+    },
+    "All active pods gone?": {
+      "Comment": "A Choice state adds branching logic to a state machine. Choice rules can implement 16 different comparison operators, and can be combined using And, Or, and Not",
+      "Type": "Choice",
+      "Choices": [
         {
-          "StartAt": "Hello",
-          "States": {
-            "Hello": {
-              "Type": "Pass",
-              "End": true
-            }
-          }
+          "Variable": "$.IsHelloWorldExample",
+          "BooleanEquals": true,
+          "Next": "Yes-Terminate the node"
         },
         {
-          "StartAt": "World",
-          "States": {
-            "World": {
-              "Type": "Pass",
-              "End": true
-            }
-          }
+          "Variable": "$.IsHelloWorldExample",
+          "BooleanEquals": false,
+          "Next": "No-Let's Wait"
         }
-      ]
+      ],
+      "Default": "Yes"
     },
-    "Hello World": {
+    "Yes-Terminate the node": {
+      "Type": "Pass",
+      "Next": "Terminate the node"
+    },
+    "No-Let's Wait": {
+      "Type": "Pass",
+      "Next": "Wait 1200 sec"
+    },
+    "Terminate the node": {
       "Type": "Pass",
       "End": true
     }
