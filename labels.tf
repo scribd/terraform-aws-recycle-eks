@@ -10,6 +10,6 @@ module "labels" {
     owner       = "${var.owner}"
     source_repo = "https://github.com/scribd/terraform-aws-recycle-eks"
     department  = "${var.department}"
-    project     = "hackweek-2020"
+    project     = "hackweek"
   }
 }

@@ -39,3 +39,13 @@ variable "instance_type" {
   default     = "m4.large"
   description = "Instance type for the worker nodes"
 }
+
+# state machine variables
+
+variable "step_function_definition_file" {
+  default = "step-function.json"
+}
+
+variable "step_function_name" {
+  default = "StepFunctionWorkflow"
+}
