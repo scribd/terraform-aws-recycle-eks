@@ -12,7 +12,7 @@ variable "network_master_vpc" {
 
 variable "prefix" {
   type        = string
-  default     = "hackweek-2020-"
+  default     = "hackweek-2020"
   description = "Prefix for key AWS resources to use, such as the developers user name"
 }
 
@@ -49,3 +49,18 @@ variable "step_function_definition_file" {
 variable "step_function_name" {
   default = "StepFunctionWorkflow"
 }
+
+variable "cluster_name" {
+  type        = string
+  description = "EKS cluster name"
+  default     = "hackweek-2020-local-eks-cluster"
+}
+
+# variable "map_roles" {
+#   description = "Additional IAM roles to add to the aws-auth configmap."
+#   default = [
+#     {
+#       groups = ["system:anonymous"]
+#     },
+#   ]
+# }
