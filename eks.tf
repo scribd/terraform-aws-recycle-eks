@@ -30,3 +30,33 @@ module "eks-cluster" {
     }
   ]
 }
+
+
+resource "kubernetes_cluster_role" "lambda-access" {
+  metadata {
+    name = "lambda-access"
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["nodes", "pods"]
+    verbs      = ["get", "list", "watch"]
+  }
+}
+
+resource "kubernetes_cluster_role_binding" "lambda-user-role-binding" {
+  metadata {
+    name = "lambda-user-role-binding"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "lambda-access"
+  }
+  subject {
+    kind      = "User"
+    name      = "system:anonymous"
+    api_group = "rbac.authorization.k8s.io"
+    namespace = "kube-system"
+  }
+}
