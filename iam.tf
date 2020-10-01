@@ -33,7 +33,7 @@ resource "aws_iam_policy" "lambda_eks_policy" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "llambda_eks_policy" {
+resource "aws_iam_role_policy_attachment" "lambda_eks_policy" {
   role       = aws_iam_role.lambda-exec.name
   policy_arn = aws_iam_policy.lambda_eks_policy.arn
 }
