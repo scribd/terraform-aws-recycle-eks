@@ -5,7 +5,7 @@
      "Put and node to standby": {
       "Comment": "Putting and worker node to standby",
       "Type": "Task",
-       "Resource": "arn:aws:lambda:us-east-2:715684093864:function:test-kuntalb-awscli",
+       "Resource": "${put-nodes-to-standby-lambda-arn}",
       "Next": "Wait 360 sec"
     },
      "Wait 360 sec": {
@@ -19,6 +19,12 @@
       "Next": "Wait 1200 sec"
     },
     "Wait 1200 sec": {
+      "Comment": "A Wait state delays the state machine from continuing for a specified time.",
+      "Type": "Wait",
+      "Seconds": 3,
+      "Next": "Check for pods"
+    },
+    "Check for pods": {
       "Comment": "A Wait state delays the state machine from continuing for a specified time.",
       "Type": "Wait",
       "Seconds": 3,

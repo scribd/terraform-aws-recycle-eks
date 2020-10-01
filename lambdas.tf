@@ -1,4 +1,4 @@
-module "lambda_function" {
+module "lambda-put-nodes-to-standby" {
   source                        = "terraform-aws-modules/lambda/aws"
   attach_cloudwatch_logs_policy = false
   attach_tracing_policy         = false

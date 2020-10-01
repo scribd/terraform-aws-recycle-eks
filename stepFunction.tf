@@ -9,4 +9,7 @@ resource "aws_sfn_state_machine" "sfn_state_machine" {
 
 data "template_file" "sfn-definition" {
   template = "${file(var.step_function_definition_file)}"
+  vars = {
+    put-nodes-to-standby-lambda-arn = "${module.lambda-put-nodes-to-standby.this_lambda_function_arn}"
+  }
 }
