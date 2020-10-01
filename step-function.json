@@ -1,49 +1,14 @@
 {
   "Comment": "A open source module to taint/drain eks worker nodes gracefully",
-  "StartAt": "Add an additional worker node",
+  "StartAt": "Put and node to standby",
   "States": {
-     "Add an additional worker node": {
-      "Comment": "adding an additional worker node to eks cluster",
-      "Type": "Pass",
-      "Next": "Put and node to standby"
-    },
      "Put and node to standby": {
       "Comment": "Putting and worker node to standby",
-      "Type": "Pass",
-      "Next": "is node on standby and all other nodes on inservice?"
-    },
-    "is node on standby and all other nodes on inservice?": {
-      "Comment": "A Choice state adds branching logic to a state machine. Choice rules can implement 16 different comparison operators, and can be combined using And, Or, and Not",
-      "Type": "Choice",
-      "Choices": [
-        {
-          "Variable": "$.IsHelloWorldExample",
-          "BooleanEquals": true,
-          "Next": "Yes"
-        },
-        {
-          "Variable": "$.IsHelloWorldExample",
-          "BooleanEquals": false,
-          "Next": "No"
-        }
-      ],
-      "Default": "Yes"
-    },
-    "Yes": {
-      "Type": "Pass",
+      "Type": "Task",
+       "Resource": "arn:aws:lambda:us-east-2:715684093864:function:test-kuntalb-awscli",
       "Next": "Wait 360 sec"
     },
-    "No": {
-      "Type": "Pass",
-      "Next": "Wait 3 sec"
-    },
-    "Wait 3 sec": {
-      "Comment": "A Wait state delays the state machine from continuing for a specified time.",
-      "Type": "Wait",
-      "Seconds": 3,
-      "Next": "is node on standby and all other nodes on inservice?"
-    },
-    "Wait 360 sec": {
+     "Wait 360 sec": {
       "Comment": "A Wait state delays the state machine from continuing for a specified time.",
       "Type": "Wait",
       "Seconds": 3,
@@ -73,8 +38,7 @@
           "BooleanEquals": false,
           "Next": "No-Let's Wait"
         }
-      ],
-      "Default": "Yes"
+      ]
     },
     "Yes-Terminate the node": {
       "Type": "Pass",

@@ -11,9 +11,9 @@ data "aws_iam_policy_document" "lambda-assume-role" {
   }
 }
 resource "aws_iam_policy" "lambda_eks_policy" {
-  name        = "test_policy"
+  name        = "lambda_eks_policy"
   path        = "/"
-  description = "My test policy"
+  description = "Policy to provide permissions to lambda functions"
 
   policy = <<EOF
 {
@@ -22,7 +22,8 @@ resource "aws_iam_policy" "lambda_eks_policy" {
         {
             "Action": [
                 "sts:GetCallerIdentity",
-                "eks:DescribeCluster"
+                "eks:DescribeCluster",
+                "autoscaling:*"
             ],
             "Effect": "Allow",
             "Resource": "*"
