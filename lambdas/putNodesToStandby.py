@@ -6,6 +6,7 @@
 import json
 import boto3
 import time
+import string
 
 ec2_client = boto3.client('ec2')
 asg_client = boto3.client('autoscaling')
@@ -25,7 +26,10 @@ def lambda_handler(event, context):
     )
 
     # Get the ASG name from the response JSON
-    #autoscaling_name = response['Reservations'][0]['Instances'][0]['Tags'][1]['Value']
+    region=response['Reservations'][0]['Instances'][0]['Placement']['AvailabilityZone'][0:9]
+    NODE_NAME=response['Reservations'][0]['Instances'][0]['PrivateDnsName']
+    print(region)
+    print(NODE_NAME)
     tags = response['Reservations'][0]['Instances'][0]['Tags']
     autoscaling_name = next(t["Value"] for t in tags if t["Key"] == "aws:autoscaling:groupName")
     print("Autoscaling name is - " + str(autoscaling_name))
@@ -53,4 +57,5 @@ def lambda_handler(event, context):
     )
         if response['AutoScalingInstances'][0]['LifecycleState']=='Standby':
             break
-    return response['AutoScalingInstances'][0]['LifecycleState']
+    output_json = {"region": region, "node_name" : NODE_NAME , "autoscaling_name" : autoscaling_name, "state": response['AutoScalingInstances'][0]['LifecycleState']}
+    return output_json
