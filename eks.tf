@@ -40,7 +40,7 @@ resource "kubernetes_cluster_role" "lambda-access" {
   rule {
     api_groups = [""]
     resources  = ["nodes", "pods"]
-    verbs      = ["get", "list", "watch"]
+    verbs      = ["get", "list", "watch", "patch"]
   }
 }
 

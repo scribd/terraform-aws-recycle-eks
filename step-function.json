@@ -6,16 +6,12 @@
       "Comment": "Putting and worker node to standby",
       "Type": "Task",
        "Resource": "${put-nodes-to-standby-lambda-arn}",
-      "Next": "Wait 360 sec"
-    },
-     "Wait 360 sec": {
-      "Comment": "A Wait state delays the state machine from continuing for a specified time.",
-      "Type": "Wait",
-      "Seconds": 3,
       "Next": "taint the node"
     },
     "taint the node": {
-      "Type": "Pass",
+      "Comment": "Putting and worker node to standby",
+      "Type": "Task",
+      "Resource": "${taint-nodes-lambda-arn}",
       "Next": "Wait 1200 sec"
     },
     "Wait 1200 sec": {
@@ -25,23 +21,23 @@
       "Next": "Check for pods"
     },
     "Check for pods": {
-      "Comment": "A Wait state delays the state machine from continuing for a specified time.",
-      "Type": "Wait",
-      "Seconds": 3,
+      "Comment": "Putting and worker node to standby",
+      "Type": "Task",
+      "Resource": "${check-nodes-forrunning-pods-lambda-arn}",
       "Next": "All active pods gone?"
     },
     "All active pods gone?": {
-      "Comment": "A Choice state adds branching logic to a state machine. Choice rules can implement 16 different comparison operators, and can be combined using And, Or, and Not",
+      "Comment": "Checking for active pod count from last step, if it is 0 then terminate else wait",
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.IsHelloWorldExample",
-          "BooleanEquals": true,
+          "Variable": "$.activePodCount",
+          "NumericEquals": 0,
           "Next": "Yes-Terminate the node"
         },
         {
-          "Variable": "$.IsHelloWorldExample",
-          "BooleanEquals": false,
+          "Variable": "$.activePodCount",
+          "NumericGreaterThan": 0,
           "Next": "No-Let's Wait"
         }
       ]
@@ -55,7 +51,8 @@
       "Next": "Wait 1200 sec"
     },
     "Terminate the node": {
-      "Type": "Pass",
+      "Type": "Task",
+      "Resource": "${detach-and-terminate-node-lambda-arn}",
       "End": true
     }
   }
