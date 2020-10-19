@@ -8,6 +8,7 @@ import random
 from botocore.signers import RequestSigner
 import logging
 import json
+import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -125,7 +126,7 @@ def count_running_pods(api, node_name):
     return len(pods) 
 
 def handler(event, context):
-
+    time.sleep(10)
     token = get_bearer_token(CLUSTER_NAME,REGION)
     # Configure
     config.load_kube_config(KUBE_FILEPATH)

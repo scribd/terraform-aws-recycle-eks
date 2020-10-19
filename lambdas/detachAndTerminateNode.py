@@ -11,7 +11,7 @@ ec2_client = boto3.client('ec2')
 asg_client = boto3.client('autoscaling')
 
 def lambda_handler(event, context):
-    id = 'i-0cb5f2eebc25b7f6d'
+    id = 'i-04ce2004fa0d18454'
     print("Instance id is " + str(id))
 
     # Capture all the info about the instance so we can extract the ASG name later
@@ -30,46 +30,42 @@ def lambda_handler(event, context):
     autoscaling_name = next(t["Value"] for t in tags if t["Key"] == "aws:autoscaling:groupName")
     print("Autoscaling name is - " + str(autoscaling_name))
 
-    #Put the instance in standby
-    response = asg_client.detach_instances(
-        InstanceIds=[
-            str(id),
-        ],
-        AutoScalingGroupName=str(autoscaling_name),
-        ShouldDecrementDesiredCapacity=False
-    )
+    #Detach the instance
+#     response = asg_client.detach_instances(
+#         InstanceIds=[
+#             str(id),
+#         ],
+#         AutoScalingGroupName=str(autoscaling_name),
+#         ShouldDecrementDesiredCapacity=True
+#     )
 
-    response = ec2_client.describe_instances(
-        Filters=[
-            {
-                'Name': 'instance-id',
-                'Values': [str(id)]
-            },
-        ],
-    )
+#     response = ec2_client.describe_instances(
+#         Filters=[
+#             {
+#                 'Name': 'instance-id',
+#                 'Values': [str(id)]
+#             },
+#         ],
+#     )
 
-    while response['Reservations'][0]['Instances'][0]['Tags']==autoscaling_name:
-        print('here')
-        time.sleep(10)
-        response = ec2_client.describe_instances(
-        Filters=[
-            {
-                'Name': 'instance-id',
-                'Values': [str(id)]
-            },
-        ],
-    )
-        if response['Reservations'][0]['Instances'][0]['Tags']!=autoscaling_name:
-            break
+#     while response['Reservations'][0]['Instances'][0]['Tags']==autoscaling_name:
+#         print('here')
+#         time.sleep(10)
+#         response = ec2_client.describe_instances(
+#         Filters=[
+#             {
+#                 'Name': 'instance-id',
+#                 'Values': [str(id)]
+#             },
+#         ],
+#     )
+#         if response['Reservations'][0]['Instances'][0]['Tags']!=autoscaling_name:
+#             break
 
-#if the node is detqched then stop the instance
+# #if the node is detqched then stop the instance
 
-    response = ec2_client.stop_instances(
-        InstanceIds=[
-            str(id),
-        ],
-    )
-
-
-if __name__ == "__main__":
-    local()
+#     response = ec2_client.stop_instances(
+#         InstanceIds=[
+#             str(id),
+#         ],
+#     )

@@ -40,7 +40,7 @@ def lambda_handler(event, context):
             str(id),
         ],
         AutoScalingGroupName=str(autoscaling_name),
-        ShouldDecrementDesiredCapacity=True
+        ShouldDecrementDesiredCapacity=False
     )
 
     response = asg_client.describe_auto_scaling_instances(
@@ -49,7 +49,7 @@ def lambda_handler(event, context):
         ]
     )
     while response['AutoScalingInstances'][0]['LifecycleState']!='Standby':
-        time.sleep(10)
+        time.sleep(15)
         response = asg_client.describe_auto_scaling_instances(
         InstanceIds=[
             str(id),

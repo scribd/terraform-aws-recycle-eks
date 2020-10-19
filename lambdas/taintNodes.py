@@ -7,6 +7,7 @@ import string
 import random
 from botocore.signers import RequestSigner
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -115,7 +116,7 @@ def taint_node(api, node_name):
     return api.patch_node(node_name, patch_body)
 
 def handler(event, context):
-
+    time.sleep(30)
     token = get_bearer_token(CLUSTER_NAME,REGION)
     # Configure
     config.load_kube_config(KUBE_FILEPATH)
@@ -147,6 +148,7 @@ def local():
     v1 = client.CoreV1Api(api)
 
     response=taint_node(v1,node_name=NODE_NAME)
+
     print(response.spec.taints)
 if __name__ == "__main__":
     local()
