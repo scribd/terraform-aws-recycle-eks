@@ -3,12 +3,6 @@ variable "aws_region" {
   description = "AWS Region to default resources into"
 }
 
-# state machine variables
-
-variable "step_function_definition_file" {
-  default = "step-function.json"
-}
-
 variable "cluster_name" {
   type        = string
   description = "EKS cluster name"

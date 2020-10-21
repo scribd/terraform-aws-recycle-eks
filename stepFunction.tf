@@ -8,7 +8,7 @@ resource "aws_sfn_state_machine" "sfn_state_machine" {
 # step function definition template
 
 data "template_file" "sfn-definition" {
-  template = "${file(var.step_function_definition_file)}"
+  template = "${file("${path.module}/step-function.json")}"
   vars = {
     put-nodes-to-standby-lambda-arn        = "${module.lambda-put-nodes-to-standby.this_lambda_function_arn}"
     check-nodes-forrunning-pods-lambda-arn = "${module.lambda-check-for-pods.this_lambda_function_arn}"
