@@ -134,9 +134,9 @@ def handler(event, context):
 
     # Get all the pods
     runningPodCount=count_running_pods(v1,node_name=event['node_name'])
-    #output_dict = {"activePodCount": runningPodCount}
-    output_json = {"activePodCount": runningPodCount}
-    return(output_json)
+    output_json = {"region": event['region'], "node_name" : event['node_name'] , "instance_id" : event['instance_id'],
+                    "cluster_name": event['cluster_name'], "activePodCount": runningPodCount}
+    return output_json
 
 #######################
 #     # Get Token

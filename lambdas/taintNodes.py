@@ -133,7 +133,9 @@ def handler(event, context):
     print(event['node_name'])
     # Get all the pods
     response=taint_node(v1,node_name=event['node_name'])
-    print(response.spec.taints)
+    output_json = {"region": event['region'], "node_name" : event['node_name'] ,
+                    "cluster_name": event['cluster_name'], "instance_id" : event['instance_id']}
+    return output_json
 
 #######################
 #     # Get Token

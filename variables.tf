@@ -3,11 +3,6 @@ variable "aws_region" {
   description = "AWS Region to default resources into"
 }
 
-variable "cluster_name" {
-  type        = string
-  description = "EKS cluster name"
-}
-
 variable "name" {
   type        = string
   description = "lamda identifiers"
