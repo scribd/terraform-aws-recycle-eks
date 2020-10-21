@@ -23,7 +23,9 @@ resource "aws_iam_policy" "lambda_eks_policy" {
             "Action": [
                 "sts:GetCallerIdentity",
                 "eks:DescribeCluster",
-                "autoscaling:*"
+                "autoscaling:*",
+                "ec2:TerminateInstances",
+                "ec2:StopInstances"
             ],
             "Effect": "Allow",
             "Resource": "*"

@@ -9,7 +9,7 @@ module "lambda-put-nodes-to-standby" {
   description                   = "A lambda function to put an instance to standby"
   handler                       = "putNodesToStandby.lambda_handler"
   runtime                       = "python3.8"
-  timeout                       = 180
+  timeout                       = 900
   create_role                   = false
   source_path                   = "${path.module}/lambdas/putNodesToStandby.py"
   tags                          = var.tags

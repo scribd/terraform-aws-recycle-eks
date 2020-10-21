@@ -47,6 +47,7 @@ def lambda_handler(event, context):
             str(instance_id),
         ]
     )
+    time.sleep(300)
     while response['AutoScalingInstances'][0]['LifecycleState']!='Standby':
         time.sleep(5)
         response = asg_client.describe_auto_scaling_instances(
@@ -56,7 +57,6 @@ def lambda_handler(event, context):
     )
         if response['AutoScalingInstances'][0]['LifecycleState']=='Standby':
             break
-    output_json = {"region": region, "node_name" : NODE_NAME ,
-                    "autoscaling_name" : autoscaling_name, "state": response['AutoScalingInstances'][0]['LifecycleState'], 
+    output_json = {"region": region, "node_name" : NODE_NAME, "instance_id": instance_id, 
                     "cluster_name": cluster_name}
     return output_json
