@@ -8,64 +8,63 @@ import random
 from botocore.signers import RequestSigner
 import logging
 import time
+import socket
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 # Configure your cluster name and region here
 KUBE_FILEPATH = '/tmp/kubeconfig'
-CLUSTER_NAME = 'hackweek-2020-local-eks-cluster'
-REGION = 'us-east-2'
-NODE_NAME='ip-10-226-87-16.us-east-2.compute.internal'
-
-
-if not os.path.exists(KUBE_FILEPATH):
-    
-    kube_content = dict()
-    # Get data from EKS API
-    eks_api = boto3.client('eks',region_name=REGION)
-    cluster_info = eks_api.describe_cluster(name=CLUSTER_NAME)
-    certificate = cluster_info['cluster']['certificateAuthority']['data']
-    endpoint = cluster_info['cluster']['endpoint']
-
-    # Generating kubeconfig
-    kube_content = dict()
-    
-    kube_content['apiVersion'] = 'v1'
-    kube_content['clusters'] = [
-        {
-        'cluster':
-            {
-            'server': endpoint,
-            'certificate-authority-data': certificate
-            },
-        'name':CLUSTER_NAME
-                
-        }]
-
-    kube_content['contexts'] = [
-        {
-        'context':
-            {
-            'cluster':CLUSTER_NAME,
-            'user':'aws'
-            },
-        'name':'aws'
-        }]
-
-    kube_content['current-context'] = 'aws'
-    kube_content['Kind'] = 'config'
-    kube_content['users'] = [
-    {
-    'name':'aws',
-    'user':'lambda'
-    }]
-
-    print(kube_content)
-    # Write kubeconfig
-    with open(KUBE_FILEPATH, 'w') as outfile:
-        yaml.dump(kube_content, outfile, default_flow_style=False)
+# CLUSTER_NAME = 'hackweek-2020-local-eks-cluster'
+# REGION = 'us-east-2'
+# NODE_NAME='ip-10-226-87-16.us-east-2.compute.internal'
 
 def get_bearer_token(cluster_id, region):
+    if not os.path.exists(KUBE_FILEPATH):
+        
+        kube_content = dict()
+        # Get data from EKS API
+        eks_api = boto3.client('eks',region_name=region)
+        cluster_info = eks_api.describe_cluster(name=cluster_id)
+        certificate = cluster_info['cluster']['certificateAuthority']['data']
+        endpoint = cluster_info['cluster']['endpoint']
+
+        # Generating kubeconfig
+        kube_content = dict()
+        
+        kube_content['apiVersion'] = 'v1'
+        kube_content['clusters'] = [
+            {
+            'cluster':
+                {
+                'server': endpoint,
+                'certificate-authority-data': certificate
+                },
+            'name':cluster_id
+                    
+            }]
+
+        kube_content['contexts'] = [
+            {
+            'context':
+                {
+                'cluster':cluster_id,
+                'user':'aws'
+                },
+            'name':'aws'
+            }]
+
+        kube_content['current-context'] = 'aws'
+        kube_content['Kind'] = 'config'
+        kube_content['users'] = [
+        {
+        'name':'aws',
+        'user':'lambda'
+        }]
+
+        print(kube_content)
+        # Write kubeconfig
+        with open(KUBE_FILEPATH, 'w') as outfile:
+            yaml.dump(kube_content, outfile, default_flow_style=False)
     STS_TOKEN_EXPIRES_IN = 60
     session = boto3.session.Session()
 
@@ -99,9 +98,12 @@ def get_bearer_token(cluster_id, region):
     )
     base64_url = base64.urlsafe_b64encode(signed_url.encode('utf-8')).decode('utf-8')
 
+
 def taint_node(api, node_name):
+    # socket.gethostbyname("")
     """Add taint to a specified node
     """
+    print(node_name)
     patch_body = {
         'apiVersion': 'v1',
         'kind': 'Node',
@@ -116,19 +118,21 @@ def taint_node(api, node_name):
     return api.patch_node(node_name, patch_body)
 
 def handler(event, context):
-    time.sleep(30)
-    token = get_bearer_token(CLUSTER_NAME,REGION)
-    # Configure
+    # time.sleep(30)
+    token = get_bearer_token(event['cluster_name'],event['region'])
+    print(event['cluster_name'])
     config.load_kube_config(KUBE_FILEPATH)
     configuration = client.Configuration()
     configuration.api_key['authorization'] = token
     configuration.api_key_prefix['authorization'] = 'Bearer'
     # API
     api = client.ApiClient(configuration)
+    print("kuntal5")
     v1 = client.CoreV1Api(api)
-
+    print(v1)
+    print(event['node_name'])
     # Get all the pods
-    response=taint_node(v1,node_name=NODE_NAME)
+    response=taint_node(v1,node_name=event['node_name'])
     print(response.spec.taints)
 
 #######################
@@ -136,7 +140,9 @@ def handler(event, context):
   
 def local():
 
-
+    REGION="us-east-2"
+    NODE_NAME= "ip-10-226-72-113.us-east-2.compute.internal"
+    CLUSTER_NAME= "kuntalb-cplat-local-airflow-v1"
     token = get_bearer_token(CLUSTER_NAME,REGION)
     # Configure
     config.load_kube_config(KUBE_FILEPATH)
@@ -146,7 +152,7 @@ def local():
     # API
     api = client.ApiClient(configuration)
     v1 = client.CoreV1Api(api)
-
+    print(v1)
     response=taint_node(v1,node_name=NODE_NAME)
 
     print(response.spec.taints)

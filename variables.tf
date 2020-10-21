@@ -49,14 +49,27 @@ variable "step_function_name" {
 variable "cluster_name" {
   type        = string
   description = "EKS cluster name"
-  default     = "hackweek-2020-local-eks-cluster"
 }
 
-# variable "map_roles" {
-#   description = "Additional IAM roles to add to the aws-auth configmap."
-#   default = [
-#     {
-#       groups = ["system:anonymous"]
-#     },
-#   ]
-# }
+variable "name" {
+  type        = string
+  description = "lamda identifiers"
+}
+
+variable "tags" {
+  description = "A map of tags to assign to resources."
+  type        = map(string)
+  default     = {}
+}
+
+variable "vpc_subnet_ids" {
+  description = "List of subnet ids when Lambda Function should run in the VPC. Usually private or intra subnets."
+  type        = list(string)
+  default     = null
+}
+
+variable "vpc_security_group_ids" {
+  description = "List of security group ids when Lambda Function should run in the VPC."
+  type        = list(string)
+  default     = null
+}

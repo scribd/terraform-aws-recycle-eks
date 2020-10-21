@@ -39,8 +39,8 @@ resource "aws_iam_role_policy_attachment" "lambda_eks_policy" {
 }
 
 resource "aws_iam_role" "lambda-exec" {
-  name                 = "${module.labels.id}-lambda-exec-role"
-  tags                 = module.labels.tags
+  name                 = "${var.name}-lambda-exec-role"
+  tags                 = var.tags
   max_session_duration = 43200
   assume_role_policy   = data.aws_iam_policy_document.lambda-assume-role.json
 }
@@ -75,8 +75,8 @@ data "aws_iam_policy_document" "sfn-assume-role" {
 }
 
 resource "aws_iam_role" "sfn-exec" {
-  name                 = "${module.labels.id}-sfn-exec"
-  tags                 = module.labels.tags
+  name                 = "${var.name}-sfn-exec"
+  tags                 = var.tags
   max_session_duration = 43200
   assume_role_policy   = data.aws_iam_policy_document.sfn-assume-role.json
 }
@@ -93,11 +93,41 @@ data "aws_iam_policy_document" "lambda-invoke" {
 }
 
 resource "aws_iam_policy" "lambda-invoke" {
-  name   = "${module.labels.id}-lambda-invoke"
+  name   = "${var.name}-lambda-invoke"
   policy = data.aws_iam_policy_document.lambda-invoke.json
 }
 
 resource "aws_iam_role_policy_attachment" "lambda-invoke" {
   role       = aws_iam_role.sfn-exec.name
   policy_arn = aws_iam_policy.lambda-invoke.arn
+}
+
+
+resource "kubernetes_cluster_role" "lambda-access" {
+  metadata {
+    name = "lambda-access"
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["nodes", "pods"]
+    verbs      = ["get", "list", "watch", "patch"]
+  }
+}
+
+resource "kubernetes_cluster_role_binding" "lambda-user-role-binding" {
+  metadata {
+    name = "lambda-user-role-binding"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "lambda-access"
+  }
+  subject {
+    kind      = "User"
+    name      = "system:anonymous"
+    api_group = "rbac.authorization.k8s.io"
+    namespace = "kube-system"
+  }
 }

@@ -14,59 +14,54 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 # Configure your cluster name and region here
 KUBE_FILEPATH = '/tmp/kubeconfig'
-CLUSTER_NAME = 'hackweek-2020-local-eks-cluster'
-REGION = 'us-east-2'
-NODE_NAME='ip-10-226-87-16.us-east-2.compute.internal'
-
-
-if not os.path.exists(KUBE_FILEPATH):
-    
-    kube_content = dict()
-    # Get data from EKS API
-    eks_api = boto3.client('eks',region_name=REGION)
-    cluster_info = eks_api.describe_cluster(name=CLUSTER_NAME)
-    certificate = cluster_info['cluster']['certificateAuthority']['data']
-    endpoint = cluster_info['cluster']['endpoint']
-
-    # Generating kubeconfig
-    kube_content = dict()
-    
-    kube_content['apiVersion'] = 'v1'
-    kube_content['clusters'] = [
-        {
-        'cluster':
-            {
-            'server': endpoint,
-            'certificate-authority-data': certificate
-            },
-        'name':CLUSTER_NAME
-                
-        }]
-
-    kube_content['contexts'] = [
-        {
-        'context':
-            {
-            'cluster':CLUSTER_NAME,
-            'user':'aws'
-            },
-        'name':'aws'
-        }]
-
-    kube_content['current-context'] = 'aws'
-    kube_content['Kind'] = 'config'
-    kube_content['users'] = [
-    {
-    'name':'aws',
-    'user':'lambda'
-    }]
-
-    print(kube_content)
-    # Write kubeconfig
-    with open(KUBE_FILEPATH, 'w') as outfile:
-        yaml.dump(kube_content, outfile, default_flow_style=False)
 
 def get_bearer_token(cluster_id, region):
+    if not os.path.exists(KUBE_FILEPATH):
+        
+        kube_content = dict()
+        # Get data from EKS API
+        eks_api = boto3.client('eks',region_name=region)
+        cluster_info = eks_api.describe_cluster(name=cluster_id)
+        certificate = cluster_info['cluster']['certificateAuthority']['data']
+        endpoint = cluster_info['cluster']['endpoint']
+
+        # Generating kubeconfig
+        kube_content = dict()
+        
+        kube_content['apiVersion'] = 'v1'
+        kube_content['clusters'] = [
+            {
+            'cluster':
+                {
+                'server': endpoint,
+                'certificate-authority-data': certificate
+                },
+            'name':cluster_id
+                    
+            }]
+
+        kube_content['contexts'] = [
+            {
+            'context':
+                {
+                'cluster':cluster_id,
+                'user':'aws'
+                },
+            'name':'aws'
+            }]
+
+        kube_content['current-context'] = 'aws'
+        kube_content['Kind'] = 'config'
+        kube_content['users'] = [
+        {
+        'name':'aws',
+        'user':'lambda'
+        }]
+
+        print(kube_content)
+        # Write kubeconfig
+        with open(KUBE_FILEPATH, 'w') as outfile:
+            yaml.dump(kube_content, outfile, default_flow_style=False)
     STS_TOKEN_EXPIRES_IN = 60
     session = boto3.session.Session()
 
@@ -102,14 +97,14 @@ def get_bearer_token(cluster_id, region):
 
 def pod_is_evictable(pod):
     if pod.metadata.annotations is not None: # and pod.metadata.annotations.get(MIRROR_POD_ANNOTATION_KEY):
-        logger.info("Skipping mirror pod {}/{}".format(pod.metadata.namespace, pod.metadata.name))
+        print("Skipping mirror pod {}/{}".format(pod.metadata.namespace, pod.metadata.name))
         return False
     if pod.metadata.owner_references is None:
         return True
     for ref in pod.metadata.owner_references:
         if ref.controller is not None and ref.controller:
             if ref.kind == CONTROLLER_KIND_DAEMON_SET:
-                logger.info("Skipping DaemonSet {}/{}".format(pod.metadata.namespace, pod.metadata.name))
+                print("Skipping DaemonSet {}/{}".format(pod.metadata.namespace, pod.metadata.name))
                 return False
     return True
 
@@ -127,7 +122,7 @@ def count_running_pods(api, node_name):
 
 def handler(event, context):
     time.sleep(10)
-    token = get_bearer_token(CLUSTER_NAME,REGION)
+    token = get_bearer_token(event['cluster_name'],event['region'])
     # Configure
     config.load_kube_config(KUBE_FILEPATH)
     configuration = client.Configuration()
@@ -138,7 +133,7 @@ def handler(event, context):
     v1 = client.CoreV1Api(api)
 
     # Get all the pods
-    runningPodCount=count_running_pods(v1,node_name=NODE_NAME)
+    runningPodCount=count_running_pods(v1,node_name=event['node_name'])
     #output_dict = {"activePodCount": runningPodCount}
     output_json = {"activePodCount": runningPodCount}
     return(output_json)
@@ -147,7 +142,9 @@ def handler(event, context):
 #     # Get Token
   
 def local():
-
+    REGION="us-east-2"
+    NODE_NAME= "ip-10-226-44-234.us-east-2.compute.internal"
+    CLUSTER_NAME= "kuntalb-cplat-local-airflow-v1"
     token = get_bearer_token(CLUSTER_NAME,REGION)
     # Configure
     config.load_kube_config(KUBE_FILEPATH)
