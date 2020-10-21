@@ -36,11 +36,10 @@ module "lambda-check-for-pods" {
     {
       path             = "${path.module}/lambdas/checkNodesForRunningPods.py"
       pip_requirements = false
-      # pip_requirements = true  # Will run "pip install" with default requirements.txt
     },
     {
-      path             = "${path.module}/awscli-lambda-layer/"
-      pip_requirements = false
+      path             = "${path.module}/lambdas/requirements.txt"
+      pip_requirements = true
     }
   ]
   tags                   = var.tags
@@ -67,11 +66,10 @@ module "lambda-taint-nodes" {
     {
       path             = "${path.module}/lambdas/taintNodes.py"
       pip_requirements = false
-      # pip_requirements = true  # Will run "pip install" with default requirements.txt
     },
     {
-      path             = "${path.module}/awscli-lambda-layer/"
-      pip_requirements = false
+      path             = "${path.module}/lambdas/requirements.txt"
+      pip_requirements = true
     }
   ]
   tags                   = var.tags
