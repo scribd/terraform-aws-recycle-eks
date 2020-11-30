@@ -9,19 +9,19 @@
       "Next": "taint the node"
     },
     "taint the node": {
-      "Comment": "Putting and worker node to standby",
+      "Comment": "Putting a taint on the standby node",
       "Type": "Task",
       "Resource": "${taint-nodes-lambda-arn}",
-      "Next": "Wait 1200 sec"
+      "Next": "Wait 100 sec"
     },
-    "Wait 1200 sec": {
+    "Wait 100 sec": {
       "Comment": "A Wait state delays the state machine from continuing for a specified time.",
       "Type": "Wait",
-      "Seconds": 3,
+      "Seconds": 100,
       "Next": "Check for pods"
     },
     "Check for pods": {
-      "Comment": "Putting and worker node to standby",
+      "Comment": "Checking for Running pods",
       "Type": "Task",
       "Resource": "${check-nodes-forrunning-pods-lambda-arn}",
       "Next": "All active pods gone?"
@@ -48,7 +48,7 @@
     },
     "No-Let's Wait": {
       "Type": "Pass",
-      "Next": "Wait 1200 sec"
+      "Next": "Wait 100 sec"
     },
     "Terminate the node": {
       "Type": "Task",

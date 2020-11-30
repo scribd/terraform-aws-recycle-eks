@@ -115,9 +115,7 @@ def get_evictable_pods(api, node_name):
     #return [pod for pod in pods.items]
 
 def count_running_pods(api, node_name):
-    #print(node_name)
     pods = get_evictable_pods(api, node_name)
-    #print(pods)
     return len(pods) 
 
 def handler(event, context):
@@ -139,27 +137,3 @@ def handler(event, context):
     return output_json
 
 #######################
-#     # Get Token
-  
-def local():
-    REGION="us-east-2"
-    NODE_NAME= "ip-10-226-44-234.us-east-2.compute.internal"
-    CLUSTER_NAME= "kuntalb-cplat-local-airflow-v1"
-    token = get_bearer_token(CLUSTER_NAME,REGION)
-    # Configure
-    config.load_kube_config(KUBE_FILEPATH)
-    configuration = client.Configuration()
-    configuration.api_key['authorization'] = token
-    configuration.api_key_prefix['authorization'] = 'Bearer'
-    # API
-    api = client.ApiClient(configuration)
-    v1 = client.CoreV1Api(api)
-
-    # Get all the pods
-    runningPodCount=count_running_pods(v1,node_name=NODE_NAME)
-    #output_dict = {"activePodCount": runningPodCount}
-    output_json = json.dumps({'activePodCount': runningPodCount})
-    print(output_json)
-
-if __name__ == "__main__":
-    local()

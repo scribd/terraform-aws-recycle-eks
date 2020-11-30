@@ -25,7 +25,6 @@ def lambda_handler(event, context):
     )
 
     # Get the ASG name from the response JSON
-    #autoscaling_name = response['Reservations'][0]['Instances'][0]['Tags'][1]['Value']
     tags = response['Reservations'][0]['Instances'][0]['Tags']
     autoscaling_name = next(t["Value"] for t in tags if t["Key"] == "aws:autoscaling:groupName")
     print("Autoscaling name is - " + str(autoscaling_name))
@@ -71,7 +70,6 @@ def lambda_handler(event, context):
     )
 
     while response['Reservations'][0]['Instances'][0]['Tags']==autoscaling_name:
-        print('here')
         time.sleep(10)
         response = ec2_client.describe_instances(
         Filters=[

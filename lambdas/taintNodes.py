@@ -12,11 +12,8 @@ import socket
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-# Configure your cluster name and region here
+
 KUBE_FILEPATH = '/tmp/kubeconfig'
-# CLUSTER_NAME = 'hackweek-2020-local-eks-cluster'
-# REGION = 'us-east-2'
-# NODE_NAME='ip-10-226-87-16.us-east-2.compute.internal'
 
 def get_bearer_token(cluster_id, region):
     if not os.path.exists(KUBE_FILEPATH):
@@ -118,7 +115,6 @@ def taint_node(api, node_name):
     return api.patch_node(node_name, patch_body)
 
 def handler(event, context):
-    # time.sleep(30)
     token = get_bearer_token(event['cluster_name'],event['region'])
     print(event['cluster_name'])
     config.load_kube_config(KUBE_FILEPATH)
@@ -138,25 +134,3 @@ def handler(event, context):
     return output_json
 
 #######################
-#     # Get Token
-  
-def local():
-
-    REGION="us-east-2"
-    NODE_NAME= "ip-10-226-72-113.us-east-2.compute.internal"
-    CLUSTER_NAME= "kuntalb-cplat-local-airflow-v1"
-    token = get_bearer_token(CLUSTER_NAME,REGION)
-    # Configure
-    config.load_kube_config(KUBE_FILEPATH)
-    configuration = client.Configuration()
-    configuration.api_key['authorization'] = token
-    configuration.api_key_prefix['authorization'] = 'Bearer'
-    # API
-    api = client.ApiClient(configuration)
-    v1 = client.CoreV1Api(api)
-    print(v1)
-    response=taint_node(v1,node_name=NODE_NAME)
-
-    print(response.spec.taints)
-if __name__ == "__main__":
-    local()
