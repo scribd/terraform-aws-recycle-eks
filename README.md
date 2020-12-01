@@ -54,7 +54,6 @@ For this project, releases will be cut from master as features and bugs are deve
 ### Maintainers
 - [Kuntal](https://github.com/kuntalkumarbasu)
 
-### Special Notes:
+### Reference
 - There is an excellent module on [Gracefully drain Kubernetes pods from EKS worker nodes during autoscaling scale-in events](https://github.com/aws-samples/amazon-k8s-node-drainer). We followed some of the principles in the Lambdas.
 - [Orchestrating Amazon Kubernetes Service (EKS) from AWS Lambda](https://medium.com/@alejandro.millan.frias/managing-kubernetes-from-aws-lambda-7922c3546249) is another writeup that we referrenced while connecting to EKS from Lambda
-
