@@ -70,7 +70,6 @@ def lambda_handler(event, context):
     )
 
     while response['Reservations'][0]['Instances'][0]['Tags']==autoscaling_name:
-        time.sleep(10)
         response = ec2_client.describe_instances(
         Filters=[
             {
