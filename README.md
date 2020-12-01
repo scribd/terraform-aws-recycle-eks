@@ -1,7 +1,7 @@
 # terraform-aws-recycle-eks
 
 This module creates a terraform module to recycle EKS worker nodes. The high level functionalities are explained below,
- - Use a lamdba to take an instance id as an input, to put it in standby mode, also add one more instance to the pool, once that instance is fully "inservice" mode then only have this instance id to standby
+ - Use a lamdba to take an instance id as an input, to put it in standby state. Using autoscaling api to automatically add a new instance to the group while putting the old instance to standby state. The old instance will get into "Standby" state only when the new instance is in fully "Inservice" state
  - Taint this "Standby" node in EKS using K8S API in Lambda to prevent new pods from getting scheduled into this node
  - Periodically use K8S API check for status of “stateful” pods on that node. Another Lambda will do that
  - Once all stateful pods have completed on the node, use K8S API in another Lambda to drain the standby node
