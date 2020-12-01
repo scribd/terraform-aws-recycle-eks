@@ -100,7 +100,6 @@ def taint_node(api, node_name):
     # socket.gethostbyname("")
     """Add taint to a specified node
     """
-    print(node_name)
     patch_body = {
         'apiVersion': 'v1',
         'kind': 'Node',
@@ -116,17 +115,13 @@ def taint_node(api, node_name):
 
 def handler(event, context):
     token = get_bearer_token(event['cluster_name'],event['region'])
-    print(event['cluster_name'])
     config.load_kube_config(KUBE_FILEPATH)
     configuration = client.Configuration()
     configuration.api_key['authorization'] = token
     configuration.api_key_prefix['authorization'] = 'Bearer'
     # API
     api = client.ApiClient(configuration)
-    print("kuntal5")
     v1 = client.CoreV1Api(api)
-    print(v1)
-    print(event['node_name'])
     # Get all the pods
     response=taint_node(v1,node_name=event['node_name'])
     output_json = {"region": event['region'], "node_name" : event['node_name'] ,

@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 # Configure your cluster name and region here
 KUBE_FILEPATH = '/tmp/kubeconfig'
+MIRROR_POD_ANNOTATION_KEY = "kubernetes.io/config.mirror"
+CONTROLLER_KIND_DAEMON_SET = "DaemonSet"
 
 def get_bearer_token(cluster_id, region):
     if not os.path.exists(KUBE_FILEPATH):
@@ -96,7 +98,10 @@ def get_bearer_token(cluster_id, region):
     base64_url = base64.urlsafe_b64encode(signed_url.encode('utf-8')).decode('utf-8')
 
 def pod_is_evictable(pod):
-    if pod.metadata.annotations is not None: # and pod.metadata.annotations.get(MIRROR_POD_ANNOTATION_KEY):
+    #TODO: Get a custom logic to ensure that we only wait for the statefull pods that matter
+    # right now we literally wait for almost anything to finish gracefully which will definitely 
+    # not possible
+    if pod.metadata.annotations is not None and pod.metadata.annotations.get(MIRROR_POD_ANNOTATION_KEY):
         print("Skipping mirror pod {}/{}".format(pod.metadata.namespace, pod.metadata.name))
         return False
     if pod.metadata.owner_references is None:
@@ -112,7 +117,6 @@ def get_evictable_pods(api, node_name):
     field_selector = 'spec.nodeName=' + node_name
     pods = api.list_pod_for_all_namespaces(watch=False, field_selector=field_selector, include_uninitialized=True)
     return [pod for pod in pods.items if pod_is_evictable(pod)]
-    #return [pod for pod in pods.items]
 
 def count_running_pods(api, node_name):
     pods = get_evictable_pods(api, node_name)
