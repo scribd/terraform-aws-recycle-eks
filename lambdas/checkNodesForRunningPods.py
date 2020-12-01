@@ -59,8 +59,6 @@ def get_bearer_token(cluster_id, region):
         'name':'aws',
         'user':'lambda'
         }]
-
-        print(kube_content)
         # Write kubeconfig
         with open(KUBE_FILEPATH, 'w') as outfile:
             yaml.dump(kube_content, outfile, default_flow_style=False)

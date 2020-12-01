@@ -12,11 +12,8 @@ ec2_client = boto3.client('ec2')
 asg_client = boto3.client('autoscaling')
 
 def lambda_handler(event, context):
-    print(event)
     instance_id = event['instance_id']
     cluster_name= event['cluster_name']
-    print("cluster_name is " , str(cluster_name))
-
     # Capture all the info about the instance so we can extract the ASG name later
     response = ec2_client.describe_instances(
         Filters=[
