@@ -110,6 +110,7 @@ def taint_node(api, node_name):
 
 def handler(event, context):
     token = get_bearer_token(event['cluster_name'],event['region'])
+    label_selector=event['label_selector']
     config.load_kube_config(KUBE_FILEPATH)
     configuration = client.Configuration()
     configuration.api_key['authorization'] = token
@@ -120,7 +121,7 @@ def handler(event, context):
     # Get all the pods
     response=taint_node(v1,node_name=event['node_name'])
     output_json = {"region": event['region'], "node_name" : event['node_name'] ,
-                    "cluster_name": event['cluster_name'], "instance_id" : event['instance_id']}
+                    "cluster_name": event['cluster_name'], "instance_id" : event['instance_id'], "label_selector":label_selector}
     return output_json
 
 #######################

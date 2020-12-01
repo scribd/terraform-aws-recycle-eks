@@ -14,6 +14,7 @@ asg_client = boto3.client('autoscaling')
 def lambda_handler(event, context):
     instance_id = event['instance_id']
     cluster_name= event['cluster_name']
+    label_selector=event['label_selector']
     # Capture all the info about the instance so we can extract the ASG name later
     response = ec2_client.describe_instances(
         Filters=[
@@ -46,9 +47,11 @@ def lambda_handler(event, context):
     )
     # Giving a sleep as it takes some time to get the new node into inservice mode.
     # TODO: Check for new node in service before proceeding
+    print(" Waiting for 300 Sec")
     time.sleep(300)
     while response['AutoScalingInstances'][0]['LifecycleState']!='Standby':
         # after the initial 300 Sec we are reducing sleep to 5 sec for subsequent checks
+        print("The node is yet to be in standby state. Waiting for 5 Sec")
         time.sleep(5)
         response = asg_client.describe_auto_scaling_instances(
         InstanceIds=[
@@ -58,5 +61,5 @@ def lambda_handler(event, context):
         if response['AutoScalingInstances'][0]['LifecycleState']=='Standby':
             break
     output_json = {"region": region, "node_name" : NODE_NAME, "instance_id": instance_id, 
-                    "cluster_name": cluster_name}
+                    "cluster_name": cluster_name, "label_selector":label_selector}
     return output_json

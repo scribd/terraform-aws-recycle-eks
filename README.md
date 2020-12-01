@@ -3,13 +3,13 @@
 This module creates a terraform module to recycle EKS worker nodes. The high level functionalities are explained below,
  - Use a lamdba to take an instance id as an input, to put it in standby state. Using autoscaling api to automatically add a new instance to the group while putting the old instance to standby state. The old instance will get into "Standby" state only when the new instance is in fully "Inservice" state
  - Taint this "Standby" node in EKS using K8S API in Lambda to prevent new pods from getting scheduled into this node
- - Periodically use K8S API check for status of “stateful” pods on that node. Another Lambda will do that
+ - Periodically use K8S API check for status of “stateful” pods on that node based on the label selector provided. Another Lambda will do that
  - Once all stateful pods have completed on the node, use K8S API in another Lambda to drain the standby node
- - Once the number of running pod reached 0, terminate that standby instance using AWS SDK.
+ - Once the number of running pod reached 0, shut down that standby instance using AWS SDK.
+ - We are not termnating the node, only shutting it down, hust in case. In future releases, we will be start terminating the nodes
 
 ## TODO:
  - Check for new node in service before proceeding to put the existing node in standby state. Right now we are putting a sleep of 300 sec.
- - The stateful pod checking logic can be made customizable to restrict the check to only pods created for a particular task tasks, for e.g., check for any pod with a specific tag set by the Airflow scheduler
  - Stop using anonymous role and find a way to map the role with a proper user
  - get_bearer_token() function used in all lambda. Refactor the code to use as a Python module.
  - Better logging and exception handling
@@ -46,8 +46,10 @@ Step function takes an json input
 
 {
     "instance_id": "i-1234567890",
-    "cluster_name": "eks-cluster-name-where-the-instance-belongs-to"
+    "cluster_name": "eks-cluster-name-where-the-instance-belongs-to",
+    "label_selector":"airflow_version=1.2.3,airflow-worker" #you can put a comma separated value for labels, either key=value or only key
 }
+This label selector will be the identifier on which the step function will wait and rest all pods will be ignored.
 
 ```
 

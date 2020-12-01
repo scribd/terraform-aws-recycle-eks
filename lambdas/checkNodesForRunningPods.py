@@ -95,29 +95,15 @@ def get_bearer_token(cluster_id, region):
     )
     base64_url = base64.urlsafe_b64encode(signed_url.encode('utf-8')).decode('utf-8')
 
-def pod_is_evictable(pod):
-    #TODO: Get a custom logic to ensure that we only wait for the statefull pods that matter
-    # right now we literally wait for almost anything to finish gracefully which will definitely 
-    # not possible
-    if pod.metadata.annotations is not None and pod.metadata.annotations.get(MIRROR_POD_ANNOTATION_KEY):
-        print("Skipping mirror pod {}/{}".format(pod.metadata.namespace, pod.metadata.name))
-        return False
-    if pod.metadata.owner_references is None:
-        return True
-    for ref in pod.metadata.owner_references:
-        if ref.controller is not None and ref.controller:
-            if ref.kind == CONTROLLER_KIND_DAEMON_SET:
-                print("Skipping DaemonSet {}/{}".format(pod.metadata.namespace, pod.metadata.name))
-                return False
-    return True
-
-def get_evictable_pods(api, node_name):
+# This method will ensure we are only waiting for pods that matter
+def get_evictable_pods(api, node_name,label_selector):
     field_selector = 'spec.nodeName=' + node_name
-    pods = api.list_pod_for_all_namespaces(watch=False, field_selector=field_selector, include_uninitialized=True)
-    return [pod for pod in pods.items if pod_is_evictable(pod)]
+    label_selector = label_selector
+    pods = api.list_pod_for_all_namespaces(watch=False, field_selector=field_selector, label_selector = label_selector, include_uninitialized=True)
+    return [pod for pod in pods.items]
 
-def count_running_pods(api, node_name):
-    pods = get_evictable_pods(api, node_name)
+def count_running_pods(api, node_name,label_selector):
+    pods = get_evictable_pods(api, node_name,label_selector)
     return len(pods) 
 
 def handler(event, context):
@@ -132,7 +118,7 @@ def handler(event, context):
     v1 = client.CoreV1Api(api)
 
     # Get all the pods
-    runningPodCount=count_running_pods(v1,node_name=event['node_name'])
+    runningPodCount=count_running_pods(v1,node_name=event['node_name'],label_selector=event['label_selector'])
     output_json = {"region": event['region'], "node_name" : event['node_name'] , "instance_id" : event['instance_id'],
                     "cluster_name": event['cluster_name'], "activePodCount": runningPodCount}
     return output_json

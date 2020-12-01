@@ -35,6 +35,7 @@ def lambda_handler(event, context):
         ]
     )
     while response['AutoScalingInstances'][0]['LifecycleState']!='InService':
+        print(" The node is not yet in service state, waiting for 5 more seconds")
         time.sleep(5)
         response = asg_client.describe_auto_scaling_instances(
         InstanceIds=[
@@ -63,6 +64,7 @@ def lambda_handler(event, context):
 
     while response['Reservations'][0]['Instances'][0]['Tags']==autoscaling_name:
         # sleep added to reduce the number of api calls for checking the status
+        print(" The node is not yet detached, waiting for 10 more seconds")
         time.sleep(10)
         response = ec2_client.describe_instances(
         Filters=[
