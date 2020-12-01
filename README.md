@@ -8,9 +8,11 @@ This module creates a terraform module to recycle EKS worker nodes. The high lev
  - Once the number of running pod reached 0, terminate that standby instance using AWS SDK.
 
 ## TODO:
+ - Check for new node in service before proceeding to put the existing node in standby state. Right now we are putting a sleep of 300 sec.
  - The stateful pod checking logic can be made customizable to restrict the check to only pods created for a particular task tasks, for e.g., check for any pod with a specific tag set by the Airflow scheduler
  - Stop using anonymous role and find a way to map the role with a proper user
  - get_bearer_token() function used in all lambda. Refactor the code to use as a Python module.
+ - Better logging and exception handling
 
 There are two main components:
 
@@ -35,6 +37,18 @@ module "recycl-eks-worker-npde" {
   aws_region             = "us-east-2"
 
 }
+```
+
+## Running of step function
+
+```
+Step function takes an json input 
+
+{
+    "instance_id": "i-1234567890",
+    "cluster_name": "eks-cluster-name-where-the-instance-belongs-to"
+}
+
 ```
 
 ## Development

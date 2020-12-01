@@ -1,8 +1,3 @@
-# Puts the instance in the standby mode
-# there is immense possibility here we can read from cludwatch warnings, or based on some other metrics to identify the 
-# instance automatically
-# for now I am taking it as a input
-
 import json
 import boto3
 import time
@@ -12,14 +7,12 @@ asg_client = boto3.client('autoscaling')
 
 def lambda_handler(event, context):
     instance_id = event['instance_id']
-    print("Instance id is " + str(instance_id))
-
     # Capture all the info about the instance so we can extract the ASG name later
     response = ec2_client.describe_instances(
         Filters=[
             {
                 'Name': 'instance-id',
-                'Values': [str(instance_id)]
+                'Values': [instance_id]
             },
         ],
     )
@@ -27,26 +20,25 @@ def lambda_handler(event, context):
     # Get the ASG name from the response JSON
     tags = response['Reservations'][0]['Instances'][0]['Tags']
     autoscaling_name = next(t["Value"] for t in tags if t["Key"] == "aws:autoscaling:groupName")
-    print("Autoscaling name is - " + str(autoscaling_name))
 
     #Put the instance in standby
     response = asg_client.exit_standby(
         InstanceIds=[
-            str(instance_id),
+            instance_id,
         ],
-        AutoScalingGroupName=str(autoscaling_name)
+        AutoScalingGroupName=autoscaling_name
     )
 
     response = asg_client.describe_auto_scaling_instances(
         InstanceIds=[
-            str(instance_id),
+            instance_id,
         ]
     )
     while response['AutoScalingInstances'][0]['LifecycleState']!='InService':
         time.sleep(5)
         response = asg_client.describe_auto_scaling_instances(
         InstanceIds=[
-            str(instance_id),
+            instance_id,
         ]
     )
         if response['AutoScalingInstances'][0]['LifecycleState']=='InService':
@@ -54,9 +46,9 @@ def lambda_handler(event, context):
    # Detach the instance
     response = asg_client.detach_instances(
         InstanceIds=[
-            str(instance_id),
+            instance_id,
         ],
-        AutoScalingGroupName=str(autoscaling_name),
+        AutoScalingGroupName=autoscaling_name,
         ShouldDecrementDesiredCapacity=True
     )
 
@@ -64,17 +56,19 @@ def lambda_handler(event, context):
         Filters=[
             {
                 'Name': 'instance-id',
-                'Values': [str(instance_id)]
+                'Values': [instance_id]
             },
         ],
     )
 
     while response['Reservations'][0]['Instances'][0]['Tags']==autoscaling_name:
+        # sleep added to reduce the number of api calls for checking the status
+        time.sleep(10)
         response = ec2_client.describe_instances(
         Filters=[
             {
                 'Name': 'instance-id',
-                'Values': [str(instance_id)]
+                'Values': [instance_id]
             },
         ],
     )
@@ -85,6 +79,6 @@ def lambda_handler(event, context):
 
     response = ec2_client.stop_instances(
         InstanceIds=[
-            str(instance_id),
+            instance_id,
         ],
     )
