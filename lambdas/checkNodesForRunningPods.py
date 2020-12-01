@@ -119,7 +119,6 @@ def count_running_pods(api, node_name):
     return len(pods) 
 
 def handler(event, context):
-    time.sleep(10)
     token = get_bearer_token(event['cluster_name'],event['region'])
     # Configure
     config.load_kube_config(KUBE_FILEPATH)
