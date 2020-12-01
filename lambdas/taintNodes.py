@@ -97,9 +97,6 @@ def get_bearer_token(cluster_id, region):
 
 
 def taint_node(api, node_name):
-    # socket.gethostbyname("")
-    """Add taint to a specified node
-    """
     patch_body = {
         'apiVersion': 'v1',
         'kind': 'Node',
