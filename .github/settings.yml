@@ -14,7 +14,7 @@ repository:
 
 teams:
   - name: core-platform
-    permission: write
+    permission: push
 
 branches:
   - name: main
