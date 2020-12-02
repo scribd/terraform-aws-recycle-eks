@@ -1,0 +1,59 @@
+{
+  "Comment": "A open source module to taint/drain eks worker nodes gracefully",
+  "StartAt": "Put and node to standby",
+  "States": {
+     "Put and node to standby": {
+      "Comment": "Putting and worker node to standby",
+      "Type": "Task",
+       "Resource": "${put-nodes-to-standby-lambda-arn}",
+      "Next": "taint the node"
+    },
+    "taint the node": {
+      "Comment": "Putting a taint on the standby node",
+      "Type": "Task",
+      "Resource": "${taint-nodes-lambda-arn}",
+      "Next": "Wait 100 sec"
+    },
+    "Wait 100 sec": {
+      "Comment": "A Wait state delays the state machine from continuing for a specified time.",
+      "Type": "Wait",
+      "Seconds": 100,
+      "Next": "Check for pods"
+    },
+    "Check for pods": {
+      "Comment": "Checking for Running pods",
+      "Type": "Task",
+      "Resource": "${check-nodes-forrunning-pods-lambda-arn}",
+      "Next": "All active pods gone?"
+    },
+    "All active pods gone?": {
+      "Comment": "Checking for active pod count from last step, if it is 0 then terminate else wait",
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.activePodCount",
+          "NumericEquals": 0,
+          "Next": "Yes-Terminate the node"
+        },
+        {
+          "Variable": "$.activePodCount",
+          "NumericGreaterThan": 0,
+          "Next": "No-Let's Wait"
+        }
+      ]
+    },
+    "Yes-Terminate the node": {
+      "Type": "Pass",
+      "Next": "Terminate the node"
+    },
+    "No-Let's Wait": {
+      "Type": "Pass",
+      "Next": "Wait 100 sec"
+    },
+    "Terminate the node": {
+      "Type": "Task",
+      "Resource": "${detach-and-terminate-node-lambda-arn}",
+      "End": true
+    }
+  }
+}

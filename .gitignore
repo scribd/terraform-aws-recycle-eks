@@ -1,0 +1,23 @@
+#  Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# .tfvars files
+*.tfvars
+
+*.sw*
+
+# Generated files
+builds/
+
+
+#intellij idea files
+.idea/
+
+# directory with files to ignore
+ignored
+.plan
+changes.exist
