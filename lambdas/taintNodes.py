@@ -1,14 +1,13 @@
-from kubernetes import client, config
-import yaml
-import boto3
+"""
+This module put unschedulable taint to an standby node
+"""
 import os.path
 import base64
-import string
-import random
-from botocore.signers import RequestSigner
 import logging
-import time
-import socket
+import yaml
+import boto3
+from botocore.signers import RequestSigner
+from kubernetes import client, config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -16,18 +15,18 @@ logger.setLevel(logging.DEBUG)
 KUBE_FILEPATH = '/tmp/kubeconfig'
 
 def get_bearer_token(cluster_id, region):
+    '''
+    created the bearer token
+    '''
     if not os.path.exists(KUBE_FILEPATH):
-        
         kube_content = dict()
         # Get data from EKS API
         eks_api = boto3.client('eks',region_name=region)
         cluster_info = eks_api.describe_cluster(name=cluster_id)
         certificate = cluster_info['cluster']['certificateAuthority']['data']
         endpoint = cluster_info['cluster']['endpoint']
-
         # Generating kubeconfig
         kube_content = dict()
-        
         kube_content['apiVersion'] = 'v1'
         kube_content['clusters'] = [
             {
@@ -37,9 +36,7 @@ def get_bearer_token(cluster_id, region):
                 'certificate-authority-data': certificate
                 },
             'name':cluster_id
-                    
             }]
-
         kube_content['contexts'] = [
             {
             'context':
@@ -49,7 +46,6 @@ def get_bearer_token(cluster_id, region):
                 },
             'name':'aws'
             }]
-
         kube_content['current-context'] = 'aws'
         kube_content['Kind'] = 'config'
         kube_content['users'] = [
@@ -95,6 +91,9 @@ def get_bearer_token(cluster_id, region):
 
 
 def taint_node(api, node_name):
+    '''
+    taints a single node
+    '''
     patch_body = {
         'apiVersion': 'v1',
         'kind': 'Node',
@@ -109,8 +108,10 @@ def taint_node(api, node_name):
     return api.patch_node(node_name, patch_body)
 
 def handler(event, context):
+    '''
+    lambda handler function
+    '''
     token = get_bearer_token(event['cluster_name'],event['region'])
-    label_selector=event['label_selector']
     config.load_kube_config(KUBE_FILEPATH)
     configuration = client.Configuration()
     configuration.api_key['authorization'] = token
@@ -121,7 +122,6 @@ def handler(event, context):
     # Get all the pods
     response=taint_node(v1,node_name=event['node_name'])
     output_json = {"region": event['region'], "node_name" : event['node_name'] ,
-                    "cluster_name": event['cluster_name'], "instance_id" : event['instance_id'], "label_selector":label_selector}
+                    "cluster_name": event['cluster_name'], "instance_id" : event['instance_id'],
+                    "label_selector" : event['label_selector']}
     return output_json
-
-#######################
