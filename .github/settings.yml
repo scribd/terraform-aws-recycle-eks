@@ -1,7 +1,7 @@
 # Managed settings for the repository, for documentation see: https://probot.github.io/apps/settings/
 ---
 repository:
-  description: Module for automatically recycling EKS worker nodes.
+  description: Terraform module for automatically recycling EKS worker nodes
   topics: cplat, eks, terraform, aws
   default_branch: main
   has_wiki: false
