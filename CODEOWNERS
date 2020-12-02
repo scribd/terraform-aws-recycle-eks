@@ -1,0 +1,9 @@
+# Everything is basically owned by Core Platform
+* @scribd/core-platform
+
+
+# For the time being, changes to the settings must be approved by somebody with
+# effective "root" access
+.github/settings.yml @scribd/core-platform-root
+# Since CODEOWNERS governs admin access, it should be guarded too
+CODEOWNERS @scribd/core-platform-root
