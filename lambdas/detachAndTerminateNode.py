@@ -1,11 +1,19 @@
-import json
-import boto3
+""" This is the lambda function to detach an standby instance from ASG
+and finally shut it down
+"""
 import time
+import boto3
 
 ec2_client = boto3.client('ec2')
 asg_client = boto3.client('autoscaling')
 
+
 def lambda_handler(event, context):
+    ''' The base lambda handler function
+    This function, get the instance id, check for ASG tag
+    put it back in Inservice state
+    and detach it from the corresponding ASG
+    '''
     instance_id = event['instance_id']
     # Capture all the info about the instance so we can extract the ASG name later
     response = ec2_client.describe_instances(

@@ -1,17 +1,23 @@
-# Puts the instance in the standby mode
-# there is immense possibility here we can read from cludwatch warnings, or based on some other metrics to identify the 
-# instance automatically
-# for now I am taking it as a input
-
-import json
-import boto3
+"""Puts the instance in the standby mode
+there is immense possibility here we can read from cludwatch warnings,
+or based on some other metrics to identify the
+instance automatically
+for now I am taking it as a input
+"""
 import time
-import string
+import boto3
 
 ec2_client = boto3.client('ec2')
 asg_client = boto3.client('autoscaling')
 
 def lambda_handler(event, context):
+    '''
+    default lambda handler, this is the function that takes
+    instance id as in input to put it in standby state. Using autoscaling api to
+    automatically add a new instance to the group while putting the old instance to standby state.
+    The old instance will get into "Standby" state only when the
+    new instance is in fully "Inservice" state
+    '''
     instance_id = event['instance_id']
     cluster_name= event['cluster_name']
     label_selector=event['label_selector']
@@ -28,7 +34,7 @@ def lambda_handler(event, context):
     # Get the ASG name from the response JSON
     instancedetails=response['Reservations'][0]['Instances'][0]
     region=instancedetails['Placement']['AvailabilityZone'][0:9]
-    NODE_NAME=instancedetails['PrivateDnsName']
+    node_name=instancedetails['PrivateDnsName']
     tags = instancedetails['Tags']
     autoscaling_name = next(t["Value"] for t in tags if t["Key"] == "aws:autoscaling:groupName")
 
@@ -60,6 +66,6 @@ def lambda_handler(event, context):
     )
         if response['AutoScalingInstances'][0]['LifecycleState']=='Standby':
             break
-    output_json = {"region": region, "node_name" : NODE_NAME, "instance_id": instance_id, 
+    output_json = {"region": region, "node_name" : node_name, "instance_id": instance_id,
                     "cluster_name": cluster_name, "label_selector":label_selector}
     return output_json

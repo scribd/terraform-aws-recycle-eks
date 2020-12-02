@@ -1,14 +1,14 @@
-from kubernetes import client, config
-import yaml
-import boto3
+"""
+lambda to check and report the count for a running pod
+in a given instance id
+"""
 import os.path
 import base64
-import string
-import random
-from botocore.signers import RequestSigner
 import logging
-import json
-import time
+import yaml
+import boto3
+from botocore.signers import RequestSigner
+from kubernetes import client, config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -18,18 +18,17 @@ MIRROR_POD_ANNOTATION_KEY = "kubernetes.io/config.mirror"
 CONTROLLER_KIND_DAEMON_SET = "DaemonSet"
 
 def get_bearer_token(cluster_id, region):
+    ''' create the bearer token
+    '''
     if not os.path.exists(KUBE_FILEPATH):
-        
         kube_content = dict()
         # Get data from EKS API
         eks_api = boto3.client('eks',region_name=region)
         cluster_info = eks_api.describe_cluster(name=cluster_id)
         certificate = cluster_info['cluster']['certificateAuthority']['data']
         endpoint = cluster_info['cluster']['endpoint']
-
         # Generating kubeconfig
         kube_content = dict()
-        
         kube_content['apiVersion'] = 'v1'
         kube_content['clusters'] = [
             {
@@ -39,7 +38,6 @@ def get_bearer_token(cluster_id, region):
                 'certificate-authority-data': certificate
                 },
             'name':cluster_id
-                    
             }]
 
         kube_content['contexts'] = [
@@ -51,7 +49,6 @@ def get_bearer_token(cluster_id, region):
                 },
             'name':'aws'
             }]
-
         kube_content['current-context'] = 'aws'
         kube_content['Kind'] = 'config'
         kube_content['users'] = [
@@ -67,7 +64,6 @@ def get_bearer_token(cluster_id, region):
 
     client = session.client('sts', region_name=region)
     service_id = client.meta.service_model.service_id
-
     signer = RequestSigner(
         service_id,
         region,
@@ -76,7 +72,6 @@ def get_bearer_token(cluster_id, region):
         session.get_credentials(),
         session.events
     )
-
     params = {
         'method': 'GET',
         'url': 'https://sts.{}.amazonaws.com/?Action=GetCallerIdentity&Version=2011-06-15'.format(region),
@@ -86,7 +81,6 @@ def get_bearer_token(cluster_id, region):
         },
         'context': {}
     }
-
     signed_url = signer.generate_presigned_url(
         params,
         region_name=region,
@@ -95,18 +89,29 @@ def get_bearer_token(cluster_id, region):
     )
     base64_url = base64.urlsafe_b64encode(signed_url.encode('utf-8')).decode('utf-8')
 
-# This method will ensure we are only waiting for pods that matter
+
 def get_evictable_pods(api, node_name,label_selector):
+    '''
+    This method will ensure we are only waiting for pods that matters based on
+    label_selector
+    '''
     field_selector = 'spec.nodeName=' + node_name
-    label_selector = label_selector
-    pods = api.list_pod_for_all_namespaces(watch=False, field_selector=field_selector, label_selector = label_selector, include_uninitialized=True)
+    pods = api.list_pod_for_all_namespaces(watch=False, field_selector=field_selector,
+        label_selector = label_selector, include_uninitialized=True)
     return [pod for pod in pods.items]
 
 def count_running_pods(api, node_name,label_selector):
+    '''
+    Report count for total running pods based on the label
+    '''
     pods = get_evictable_pods(api, node_name,label_selector)
-    return len(pods) 
+    return len(pods)
 
 def handler(event, context):
+    '''
+    Lambda handler, this function will call the
+    private functions to get the running pod count based on the label selector provided
+    '''
     token = get_bearer_token(event['cluster_name'],event['region'])
     # Configure
     config.load_kube_config(KUBE_FILEPATH)
@@ -118,9 +123,9 @@ def handler(event, context):
     v1 = client.CoreV1Api(api)
 
     # Get all the pods
-    runningPodCount=count_running_pods(v1,node_name=event['node_name'],label_selector=event['label_selector'])
-    output_json = {"region": event['region'], "node_name" : event['node_name'] , "instance_id" : event['instance_id'],
-                    "cluster_name": event['cluster_name'], "activePodCount": runningPodCount}
+    runningPodCount=count_running_pods(v1,node_name=event['node_name'],
+        label_selector=event['label_selector'])
+    output_json = {"region": event['region'], "node_name" : event['node_name'] ,
+                    "instance_id" : event['instance_id'], "cluster_name": event['cluster_name'],
+                     "activePodCount": runningPodCount}
     return output_json
-
-#######################
