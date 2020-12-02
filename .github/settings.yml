@@ -2,7 +2,7 @@
 ---
 repository:
   description: Module for automatically recycling EKS worker nodes.
-  topics: cplat, eks, terraform
+  topics: cplat, eks, terraform, aws
   default_branch: main
   has_wiki: false
   has_projects: false
