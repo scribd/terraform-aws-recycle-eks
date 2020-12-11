@@ -1,5 +1,6 @@
 module "lambda-put-nodes-to-standby" {
   source                        = "terraform-aws-modules/lambda/aws"
+  version                       = "1.30.0"
   attach_cloudwatch_logs_policy = false
   attach_tracing_policy         = false
   attach_async_event_policy     = false
@@ -20,6 +21,7 @@ module "lambda-put-nodes-to-standby" {
 
 module "lambda-check-for-pods" {
   source                        = "terraform-aws-modules/lambda/aws"
+  version                       = "1.30.0"
   attach_cloudwatch_logs_policy = false
   attach_tracing_policy         = false
   attach_async_event_policy     = false
@@ -50,6 +52,7 @@ module "lambda-check-for-pods" {
 
 module "lambda-taint-nodes" {
   source                        = "terraform-aws-modules/lambda/aws"
+  version                       = "1.30.0"
   attach_cloudwatch_logs_policy = false
   attach_tracing_policy         = false
   attach_async_event_policy     = false
@@ -80,6 +83,7 @@ module "lambda-taint-nodes" {
 
 module "lambda-detach-and-terminate-node" {
   source                        = "terraform-aws-modules/lambda/aws"
+  version                       = "1.30.0"
   attach_cloudwatch_logs_policy = false
   attach_tracing_policy         = false
   attach_async_event_policy     = false
