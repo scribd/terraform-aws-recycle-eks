@@ -25,7 +25,7 @@ There are two main components:
 **Set up all supported AWS / Datadog integrations**
 
 ```
-module "recycl-eks-worker-npde" {
+module "recycl-eks-worker-node" {
   source = "git::git@github.com:scribd/terraform-aws-recycle-eks.git"
   name                   = "string"
   tags                            = {
@@ -35,6 +35,7 @@ module "recycl-eks-worker-npde" {
   vpc_subnet_ids         = ["subnet-12345678", "subnet-87654321"]
   vpc_security_group_ids = ["sg-12345678"]
   aws_region             = "us-east-2"
+  namespace = "your pod namespace" # it is defauted to default namespace in the module
 
 }
 ```
