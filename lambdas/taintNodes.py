@@ -4,58 +4,66 @@ This module put unschedulable taint to an standby node
 import os.path
 import base64
 import logging
+import re
 import yaml
 import boto3
+import kubernetes as k8s
 from botocore.signers import RequestSigner
-from kubernetes import client, config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 KUBE_FILEPATH = '/tmp/kubeconfig'
 
-def get_bearer_token(cluster_id, region):
-    '''
-    created the bearer token
-    '''
-    if not os.path.exists(KUBE_FILEPATH):
-        kube_content = dict()
-        # Get data from EKS API
-        eks_api = boto3.client('eks',region_name=region)
-        cluster_info = eks_api.describe_cluster(name=cluster_id)
-        certificate = cluster_info['cluster']['certificateAuthority']['data']
-        endpoint = cluster_info['cluster']['endpoint']
-        # Generating kubeconfig
-        kube_content = dict()
-        kube_content['apiVersion'] = 'v1'
-        kube_content['clusters'] = [
+
+
+def create_kube_config(eks, cluster_name):
+    """Creates the Kubernetes config file required when instantiating the API client."""
+    cluster_info = eks.describe_cluster(name=cluster_name)['cluster']
+    certificate = cluster_info['certificateAuthority']['data']
+    endpoint = cluster_info['endpoint']
+
+    kube_config = {
+        'apiVersion': 'v1',
+        'clusters': [
             {
-            'cluster':
-                {
-                'server': endpoint,
-                'certificate-authority-data': certificate
-                },
-            'name':cluster_id
-            }]
-        kube_content['contexts'] = [
+                'cluster':
+                    {
+                        'server': endpoint,
+                        'certificate-authority-data': certificate
+                    },
+                'name': 'k8s'
+
+            }],
+        'contexts': [
             {
-            'context':
-                {
-                'cluster':cluster_id,
-                'user':'aws'
-                },
-            'name':'aws'
+                'context':
+                    {
+                        'cluster': 'k8s',
+                        'user': 'aws'
+                    },
+                'name': 'aws'
+            }],
+        'current-context': 'aws',
+        'Kind': 'config',
+        'users': [
+            {
+                'name': 'aws',
+                'user': 'lambda'
             }]
-        kube_content['current-context'] = 'aws'
-        kube_content['Kind'] = 'config'
-        kube_content['users'] = [
-        {
-        'name':'aws',
-        'user':'lambda'
-        }]
-        # Write kubeconfig
-        with open(KUBE_FILEPATH, 'w') as outfile:
-            yaml.dump(kube_content, outfile, default_flow_style=False)
+    }
+
+    with open(KUBE_FILEPATH, 'w') as kube_file_content:
+        yaml.dump(kube_config, kube_file_content, default_flow_style=False)
+
+
+def get_bearer_token(cluster, region):
+    """Creates the authentication to token required by AWS IAM Authenticator. This is
+    done by creating a base64 encoded string which represents a HTTP call to the STS
+    GetCallerIdentity Query Request
+    (https://docs.aws.amazon.com/STS/latest/APIReference/API_GetCallerIdentity.html).
+    The AWS IAM Authenticator decodes the base64 string and makes the request on behalf of the user.
+    """
     STS_TOKEN_EXPIRES_IN = 60
     session = boto3.session.Session()
 
@@ -76,7 +84,7 @@ def get_bearer_token(cluster_id, region):
         'url': 'https://sts.{}.amazonaws.com/?Action=GetCallerIdentity&Version=2011-06-15'.format(region),
         'body': {},
         'headers': {
-            'x-k8s-aws-id': cluster_id
+            'x-k8s-aws-id': cluster
         },
         'context': {}
     }
@@ -87,7 +95,13 @@ def get_bearer_token(cluster_id, region):
         expires_in=STS_TOKEN_EXPIRES_IN,
         operation_name=''
     )
+
     base64_url = base64.urlsafe_b64encode(signed_url.encode('utf-8')).decode('utf-8')
+
+    # need to remove base64 encoding padding:
+    # https://github.com/kubernetes-sigs/aws-iam-authenticator/issues/202
+    return 'k8s-aws-v1.' + re.sub(r'=*', '', base64_url)
+
 
 
 def taint_node(api, node_name):
@@ -105,22 +119,28 @@ def taint_node(api, node_name):
         }
     }
 
-    return api.patch_node(node_name, patch_body)
+    api.patch_node(node_name, patch_body)
 
 def handler(event, context):
     '''
     lambda handler function
     '''
+    eks = boto3.client('eks', region_name=event['region'])
+    #creating kube config
+    if not os.path.exists(KUBE_FILEPATH):
+        create_kube_config(eks, event['cluster_name'])
+    #loading Kube Config
+    k8s.config.load_kube_config(KUBE_FILEPATH)
+    configuration = k8s.client.Configuration()
     token = get_bearer_token(event['cluster_name'],event['region'])
-    config.load_kube_config(KUBE_FILEPATH)
-    configuration = client.Configuration()
+    #getting Auth Token
     configuration.api_key['authorization'] = token
     configuration.api_key_prefix['authorization'] = 'Bearer'
     # API
-    api = client.ApiClient(configuration)
-    v1 = client.CoreV1Api(api)
+    api = k8s.client.ApiClient(configuration)
+    core_v1_api = k8s.client.CoreV1Api(api)
     # Get all the pods
-    response=taint_node(v1,node_name=event['node_name'])
+    taint_node(core_v1_api,node_name=event['node_name'])
     output_json = {"region": event['region'], "node_name" : event['node_name'] ,
                     "cluster_name": event['cluster_name'], "instance_id" : event['instance_id'],
                     "label_selector" : event['label_selector']}
