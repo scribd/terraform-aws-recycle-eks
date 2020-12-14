@@ -1,0 +1,42 @@
+name: 'CI'
+on:
+  push:
+    branches: [ main ]
+    tags: [ '*' ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.12.25
+      - run: terraform fmt
+      - run: terraform init
+
+      - name: tflint
+        uses: reviewdog/action-tflint@v1.4.2
+        with:
+          github_token: ${{ secrets.github_token }}
+  python:
+    name: 'Python'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+      - name: Set up Python environment
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+      - run: pip install flake8 mypy black
+      - name: black format
+        run: black --check lambdas
+      - name: flake8
+        run: flake8 --ignore E501
+      - name: mypy static analysis
+        run: mypy --ignore-missing-imports --follow-imports skip ./lambdas
