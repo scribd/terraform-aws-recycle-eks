@@ -1,27 +1,27 @@
 {
   "Comment": "A open source module to taint/drain eks worker nodes gracefully",
-  "StartAt": "Put and node to standby",
+  "StartAt": "Put node to standby",
   "States": {
-     "Put and node to standby": {
-      "Comment": "Putting and worker node to standby",
+     "Put node to standby": {
+      "Comment": "Putting worker node to standby",
       "Type": "Task",
        "Resource": "${put-nodes-to-standby-lambda-arn}",
       "Next": "taint the node"
     },
     "taint the node": {
-      "Comment": "Putting a taint on the standby node",
+      "Comment": "Putting a unschedulable taint on the standby node",
       "Type": "Task",
       "Resource": "${taint-nodes-lambda-arn}",
       "Next": "Wait 100 sec"
     },
     "Wait 100 sec": {
-      "Comment": "A Wait state delays the state machine from continuing for a specified time.",
+      "Comment": "Putting a wait for 100 seconds",
       "Type": "Wait",
       "Seconds": 100,
       "Next": "Check for pods"
     },
     "Check for pods": {
-      "Comment": "Checking for Running pods",
+      "Comment": "Checking for Running pods based on the label selector",
       "Type": "Task",
       "Resource": "${check-nodes-forrunning-pods-lambda-arn}",
       "Next": "All active pods gone?"
