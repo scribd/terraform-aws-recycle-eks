@@ -128,8 +128,7 @@ resource "kubernetes_cluster_role_binding" "lambda-user-role-binding" {
   }
   subject {
     kind      = "User"
-    name      = "system:anonymous"
+    name      = "lambda"
     api_group = "rbac.authorization.k8s.io"
-    namespace = "kube-system"
   }
 }
