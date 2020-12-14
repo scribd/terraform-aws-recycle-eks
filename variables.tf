@@ -25,3 +25,8 @@ variable "vpc_security_group_ids" {
   type        = list(string)
   default     = null
 }
+variable "namespace" {
+  description = "The namespace against which the pods will be checked"
+  type        = string
+  default     = "default"
+}
