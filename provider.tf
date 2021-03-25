@@ -6,11 +6,3 @@ provider "aws" {
 provider "random" {
   version = "2.2.1"
 }
-
-terraform {
-  required_providers {
-    kubernetes = {
-      source = "hashicorp/kubernetes"
-    }
-  }
-}
