@@ -106,6 +106,7 @@ resource "aws_iam_role_policy_attachment" "lambda-invoke" {
 
 
 resource "kubernetes_cluster_role" "lambda-access" {
+  count = var.create_rbac_roles ? 1 : 0
   metadata {
     name = "lambda-access"
   }
@@ -118,6 +119,7 @@ resource "kubernetes_cluster_role" "lambda-access" {
 }
 
 resource "kubernetes_cluster_role_binding" "lambda-user-role-binding" {
+  count = var.create_rbac_roles ? 1 : 0
   metadata {
     name = "lambda-user-role-binding"
   }

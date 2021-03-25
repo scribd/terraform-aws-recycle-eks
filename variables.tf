@@ -36,3 +36,9 @@ variable "runtime_python" {
   type        = string
   default     = "python3.8"
 }
+
+variable "create_rbac_roles" {
+  description = "making the creation of rbac roles optional"
+  type        = boolean
+  default     = false
+}
