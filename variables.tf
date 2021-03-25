@@ -30,3 +30,15 @@ variable "namespace" {
   type        = string
   default     = "default"
 }
+
+variable "runtime_python" {
+  description = "The runtime version for python env"
+  type        = string
+  default     = "python3.8"
+}
+
+variable "create_rbac_roles" {
+  description = "making the creation of rbac roles optional"
+  type        = bool
+  default     = false
+}

@@ -9,7 +9,7 @@ module "lambda-put-nodes-to-standby" {
   function_name                 = "${var.name}-put-nodes-to-standby"
   description                   = "A lambda function to put an instance to standby"
   handler                       = "putNodesToStandby.lambda_handler"
-  runtime                       = "python3.8"
+  runtime                       = var.runtime_python
   timeout                       = 900
   create_role                   = false
   source_path                   = "${path.module}/lambdas/putNodesToStandby.py"
@@ -31,7 +31,7 @@ module "lambda-check-for-pods" {
   function_name                 = "${var.name}-check-for-running-pods"
   description                   = "A lambda function to check for running pods in an instance"
   handler                       = "checkNodesForRunningPods.handler"
-  runtime                       = "python3.8"
+  runtime                       = var.runtime_python
   timeout                       = 60
 
   source_path = [
@@ -62,7 +62,7 @@ module "lambda-taint-nodes" {
   function_name                 = "${var.name}-taint-nodes"
   description                   = "A lambda function to ensure no more scheduling on that node"
   handler                       = "taintNodes.handler"
-  runtime                       = "python3.8"
+  runtime                       = var.runtime_python
   timeout                       = 60
 
   source_path = [
@@ -93,7 +93,7 @@ module "lambda-detach-and-terminate-node" {
   function_name                 = "${var.name}-detachand-terminate-node"
   description                   = "A lambda function to detach a node from asg and terminate it"
   handler                       = "detachAndTerminateNode.lambda_handler"
-  runtime                       = "python3.8"
+  runtime                       = var.runtime_python
   timeout                       = 60
   source_path                   = "${path.module}/lambdas/detachAndTerminateNode.py"
   tags                          = var.tags
