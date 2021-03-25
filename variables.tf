@@ -39,6 +39,6 @@ variable "runtime_python" {
 
 variable "create_rbac_roles" {
   description = "making the creation of rbac roles optional"
-  type        = boolean
+  type        = bool
   default     = false
 }
