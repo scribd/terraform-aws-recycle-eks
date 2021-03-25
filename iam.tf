@@ -129,6 +129,6 @@ resource "kubernetes_cluster_role_binding" "lambda-user-role-binding" {
   subject {
     kind      = "User"
     name      = "lambda"
-    api_group = "rbac.authorization.k8s.io"
+    api_group = ""
   }
 }
