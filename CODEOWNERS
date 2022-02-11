@@ -1,9 +1,9 @@
-# Everything is basically owned by Core Platform
-* @scribd/core-platform
+# Everything is basically owned by Data Platform
+* @scribd/data-platform
 
 
 # For the time being, changes to the settings must be approved by somebody with
 # effective "root" access
-.github/settings.yml @scribd/core-platform-root
+.github/settings.yml @scribd/platform-eng-leads
 # Since CODEOWNERS governs admin access, it should be guarded too
-CODEOWNERS @scribd/core-platform-root
+CODEOWNERS @scribd/platform-eng-leads
