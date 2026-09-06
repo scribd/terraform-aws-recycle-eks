@@ -47,7 +47,7 @@ def create_kube_config(eks, cluster_name):
 
 
 def get_bearer_token(cluster, region):
-    """Creates the authentication to token required by AWS IAM Authenticator. This is
+    """Creates the authentication token required by AWS IAM Authenticator. This is
     done by creating a base64 encoded string which represents a HTTP call to the STS
     GetCallerIdentity Query Request
     (https://docs.aws.amazon.com/STS/latest/APIReference/API_GetCallerIdentity.html).
@@ -86,7 +86,7 @@ def get_bearer_token(cluster, region):
 
 def get_evictable_pods(api, node_name, label_selector):
     """
-    This method will ensure we are only waiting for pods that matters based on
+    This method will ensure we are only waiting for pods that matter based on
     label_selector
     """
     field_selector = "spec.nodeName=" + node_name
