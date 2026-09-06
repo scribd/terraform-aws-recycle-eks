@@ -1,5 +1,5 @@
 """Puts the instance in the standby mode
-there is immense possibility here we can read from cludwatch warnings,
+there is immense possibility here we can read from cloudwatch warnings,
 or based on some other metrics to identify the
 instance automatically
 for now I am taking it as a input
@@ -14,10 +14,10 @@ asg_client = boto3.client("autoscaling")
 def lambda_handler(event, context):
     """
     default lambda handler, this is the function that takes
-    instance id as in input to put it in standby state. Using autoscaling api to
+    instance id as an input to put it in standby state. Using autoscaling api to
     automatically add a new instance to the group while putting the old instance to standby state.
     The old instance will get into "Standby" state only when the
-    new instance is in fully "Inservice" state
+    new instance is in fully "InService" state
     """
     instance_id = event["instance_id"]
     cluster_name = event["cluster_name"]

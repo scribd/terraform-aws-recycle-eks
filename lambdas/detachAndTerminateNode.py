@@ -1,4 +1,4 @@
-""" This is the lambda function to detach an standby instance from ASG
+""" This is the lambda function to detach a standby instance from ASG
 and finally shut it down
 """
 import time
@@ -11,7 +11,7 @@ asg_client = boto3.client("autoscaling")
 def lambda_handler(event, context):
     """The base lambda handler function
     This function, get the instance id, check for ASG tag
-    put it back in Inservice state
+    put it back in InService state
     and detach it from the corresponding ASG
     """
     instance_id = event["instance_id"]
@@ -78,7 +78,7 @@ def lambda_handler(event, context):
         if response["Reservations"][0]["Instances"][0]["Tags"] != autoscaling_name:
             break
 
-    # if the node is detqched then stop the instance
+    # if the node is detached then stop the instance
 
     response = ec2_client.stop_instances(
         InstanceIds=[
